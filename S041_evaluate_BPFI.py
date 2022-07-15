@@ -73,9 +73,7 @@ def process(policy, dataloader, top_k, shuffling, column):
         if policy['type'] == 'gcnn':
             c, ei, ev, v, n_cs, n_vs, n_cands, cands, best_cands, cand_scores = batch
 
-            seed = np.random.randint(100)
-            # if shuffling == None:
-            #     print('There is no shuffling')
+            seed = np.random.randint(1,100)
             if shuffling == 'constraint':
                 constraint_features1 = c[:,column]
                 constraint_features1 = tf.random.shuffle(constraint_features1,seed)
@@ -148,7 +146,7 @@ def exp_main(args):
 
     os.makedirs("results", exist_ok=True)
     seeds = eval(args.seeds) # TODO
-    gcnn_models = ['baseline']
+    gcnn_models = ['Full-GCNN']
     other_models = []
     test_batch_size = 16
     top_k = [1, 3, 5, 10]

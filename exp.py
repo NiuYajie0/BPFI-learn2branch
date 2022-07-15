@@ -1,16 +1,16 @@
 
 #%%
-import Gasse_l2b.S01_generate_instances as S01_generate_instances, Gasse_l2b.S02_generate_dataset as S02_generate_dataset, S03_train_gcnn, S04_test,S06_train_competitor,S06_evaluate_BPFI
+import Gasse_l2b.S01_generate_instances as S01_generate_instances, Gasse_l2b.S02_generate_dataset as S02_generate_dataset, S03_train_gcnn, S04_test,S031_train_competitor, S041_evaluate_BPFI, S05_evaluate
 from types import SimpleNamespace
 #%%
 if __name__ == '__main__':
 
     # %%
-
-    problem = "indset" # choices=['setcover', 'cauctions', 'facilities', 'indset']
+    problem = "setcover" # choices=['setcover', 'cauctions', 'facilities', 'indset']
     # samplingStrategy = "depthK2" 
-    train_seeds = "range(0,1)"
+    train_seeds = "range(0,5)"
     gpu = 0 # CUDA GPU id (-1 for CPU).
+    model = "Full-GCNN"
 
     # # %%
     # S01_args = {
@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
         # %% Train GCNN
         # S03_args = {
-        #     'model' : 'Full-GCNN',
+        #     'model' : model,
         #     'gpu' : gpu,
         #     'problem' : problem,
         #     'sampling' : samplingStrategy,
@@ -51,43 +51,52 @@ if __name__ == '__main__':
         # S03_args = SimpleNamespace(**S03_args)
         # S03_train_gcnn.exp_main(S03_args)
 
-    ### Evaluate BPFI
-    #   TODO
+        # # %%
+        # S041_args = {
+        #     'gpu': gpu,
+        #     'problem': problem,
+        #     'sampling' : samplingStrategy,
+        #     'sample_seed' : sampling_seed,
+        #     'seeds' : train_seeds, # python expression as string, to be used with eval(...)
+        # }
+        # S041_args = SimpleNamespace(**S041_args)
+        # S041_evaluate_BPFI.exp_main(S041_args)
 
-    ## Train GCNN based on reduced bigraphs (根据BPFI metrics屏蔽某些特征)
-    #   TODO
-
-        # # %% Train Competitors
-        # S06_args = {
-        #     'model' : 'extratrees',
+        # %% Train Competitors
+        # S031_args = {
+        #     'model' : 'lambdamart',
         #     'gpu' : gpu,
         #     'problem' : problem,
         #     'sampling' : samplingStrategy,
         #     'sample_seed' : sampling_seed,
         #     'seeds' : train_seeds,
         # }
-        # S06_args = SimpleNamespace(**S06_args)
-        # S06_train_competitor.exp_main(S06_args)
+        # S031_args = SimpleNamespace(**S031_args)
+        # S031_train_competitor.exp_main(S031_args)
 
 
-    # # %%
-    #     S04_args = {
-    #         'gpu': gpu,
-    #         'problem': problem,
-    #         'sampling' : samplingStrategy,
-    #         'sample_seed' : sampling_seed,
-    #         'seeds' : train_seeds, # python expression as string, to be used with eval(...)
-    #     }
-    #     S04_args = SimpleNamespace(**S04_args)
-    #     S04_test.exp_main(S04_args)
-
-# %%
-        S06_args = {
+    # %%
+        S04_args = {
+            'model' : model,
             'gpu': gpu,
             'problem': problem,
             'sampling' : samplingStrategy,
             'sample_seed' : sampling_seed,
             'seeds' : train_seeds, # python expression as string, to be used with eval(...)
         }
-        S06_args = SimpleNamespace(**S06_args)
-        S06_evaluate_BPFI.exp_main(S06_args)
+        S04_args = SimpleNamespace(**S04_args)
+        S04_test.exp_main(S04_args)
+
+
+    # # # %%
+    #     S05_args = {
+    #         'model' : model,
+    #         'gpu': gpu,
+    #         'problem': problem,
+    #         'sampling' : samplingStrategy,
+    #         'sample_seed' : sampling_seed,
+    #         'seeds' : train_seeds, # python expression as string, to be used with eval(...)
+    #     }
+    #     S05_args = SimpleNamespace(**S05_args)
+    #     S05_evaluate.exp_main(S05_args)
+

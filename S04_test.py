@@ -63,16 +63,16 @@ def padding(output, n_vars_per_sample, fill=-1e8):
 
     return output
 
-def process(policy, dataloader, top_k):
+def process(policy, dataloader, top_k, model_name):
     mean_kacc = np.zeros(len(top_k))
-
     n_samples_processed = 0
     for batch in dataloader:
-
         if policy['type'] == 'gcnn':
             c, ei, ev, v, n_cs, n_vs, n_cands, cands, best_cands, cand_scores = batch
-
-            pred_scores = policy['model']((c, ei, ev, v, tf.reduce_sum(n_cs, keepdims=True), tf.reduce_sum(n_vs, keepdims=True)), tf.convert_to_tensor(False),(4),(0))
+            if model_name == 'Full-GCNN':
+                pred_scores = policy['model']((c, ei, ev, v, tf.reduce_sum(n_cs, keepdims=True), tf.reduce_sum(n_vs, keepdims=True)), tf.convert_to_tensor(False))
+            else:
+                pred_scores = policy['model']((c, ei, ev, v, tf.reduce_sum(n_cs, keepdims=True), tf.reduce_sum(n_vs, keepdims=True)))
 
             # filter candidate variables
             pred_scores = tf.expand_dims(tf.gather(tf.squeeze(pred_scores, 0), cands), 0)
@@ -123,32 +123,19 @@ def exp_main(args):
     # result_file = f"results/{args.problem}_validation_{time.strftime('%Y%m%d-%H%M%S')}.csv"
     seeds = eval(args.seeds) # TODO
     # seeds = [0, 1]
-    gcnn_models = ['baseline']
-    # gcnn_models = []
-    # other_models = ['lambdamart_khalil']
-    # other_models = ['extratrees_gcnn_agg']
-    other_models = []
+    gcnn_models = [args.model]
+    other_models = ['extratrees_gcnn_agg','lambdamart_khalil']
     test_batch_size = 16
     top_k = [1, 3, 5, 10]
 
-    # if args.problem == 'setcover':
-    #     gcnn_models += ['mean_convolution', 'no_prenorm']
 
-    # problem_folders = {
-    #     'setcover': f'setcover/500r_1000c_0.05d({args.sampling})/{args.sample_seed}',
-    #     'cauctions': f'cauctions/100_500({args.sampling})/{args.sample_seed}',
-    #     'facilities': f'facilities/100_100_5({args.sampling})/{args.sample_seed}',
-    #     'indset': f'indset/500_4({args.sampling})/{args.sample_seed}',
-    # }
-    # problem_folder = problem_folders[args.problem]
-    # test_files = list(pathlib.Path(f"data/samples/{problem_folder}/test").glob('sample_*.pkl'))
 
     test_files = list(pathlib.Path(f"data/samples/{args.problem}/test").glob('sample_*.pkl'))
     test_files = [str(x) for x in test_files]
 
-    result_file = f"results/{args.problem}/{args.problem}_{args.sampling}_ss{args.sample_seed}_test_{time.strftime('%Y%m%d-%H%M%S')}.csv"
+    result_file = f"results/{args.problem}/{args.model}_ss{args.sample_seed}_test_{time.strftime('%Y%m%d-%H%M%S')}.csv"
 
-    trained_model_path = f"trained_models/{args.problem}/{args.sampling}/ss{args.sample_seed}"
+    trained_model_path = f"trained_models/{args.problem}/{args.model}/{args.sampling}/ss{args.sample_seed}"
 
     # os.makedirs('results', exist_ok=True)
 
@@ -189,10 +176,10 @@ def exp_main(args):
                 policy['type'] = policy_type
 
                 if policy['type'] == 'gcnn':
-                    # load model
-                    # sys.path.insert(0, os.path.abspath(f"models/{policy['name']}"))
-                    model = importlib.import_module(f"Gasse_l2b.models.{policy['name']}.model")
-                    # policy['model'] = model.GCNPolicy()
+                    if args.model == 'Full-GCNN':
+                        model = importlib.import_module(f"Gasse_l2b.models.{policy['name']}.model")
+                    else:
+                        model = importlib.import_module(f"models.{policy['name']}.model")
                     
                     policy['model'] = model.GCNPolicy()
                     # TODO
@@ -214,7 +201,7 @@ def exp_main(args):
                     if policy_name.startswith('svmrank'):
                         policy['model'] = svmrank.Model().read(f"trained_models/{args.problem}/{policy['name']}/{train_seed}/model.txt")
                     else:
-                        with open(f"trained_models/{args.problem}/{policy['name']}/{train_seed}/model.pkl", 'rb') as f:
+                        with open(f"trained_models/{args.problem}/{policy['name']}/{args.sampling}/ts{train_seed}/model.pkl", 'rb') as f:
                             # try:
                             #     policy['model'] = pickle.load(f)
                             # except EOFError:
@@ -223,7 +210,7 @@ def exp_main(args):
                             policy['model'] = pickle.load(f)
 
                     # load feature specifications
-                    with open(f"trained_models/{args.problem}/{policy['name']}/{train_seed}/feat_specs.pkl", 'rb') as f:
+                    with open(f"trained_models/{args.problem}/{policy['name']}/{args.sampling}/ts{train_seed}/feat_specs.pkl", 'rb') as f:
                         # try:
                         #         feat_specs = pickle.load(f)
                         # except EOFError:
@@ -242,7 +229,7 @@ def exp_main(args):
                 
                 test_data = test_data.prefetch(2)
 
-                test_kacc = process(policy, test_data, top_k)
+                test_kacc = process(policy, test_data, top_k, args.model)
                 print(f"  {train_seed} " + " ".join([f"acc@{k}: {100*acc:4.1f}" for k, acc in zip(top_k, test_kacc)]))
 
                 writer.writerow({
@@ -287,6 +274,13 @@ if __name__ == '__main__':
         help='seed of the sampled data',
         choices=['uniform5', 'depthK', 'depthK2'],
         default='uniform5'
+    )
+    parser.add_argument(
+        '-m', '--model',
+        help='GCNN model to be trained.',
+        type=str,
+        choices=['BPFI-GCNN','Full-GCNN'],
+        default='Full-GCNN'
     )
     args = parser.parse_args()
 
