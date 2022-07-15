@@ -380,20 +380,20 @@ class GCNPolicy(BaseModel):
 
         #indset
         
-        variable_features1 = tf.zeros([a,5])
-        new = tf.Variable(variable_features)
-        new1 = tf.Variable(variable_features1)
-        new = new[:,0:5].assign(new1)
+        # variable_features1 = tf.zeros([a,5])
+        # new = tf.Variable(variable_features)
+        # new1 = tf.Variable(variable_features1)
+        # new = new[:,0:5].assign(new1)
 
-        variable_features2 = tf.zeros([a])
-        new1 = tf.Variable(variable_features2)
-        new = new[:,7].assign(new1)
+        # variable_features2 = tf.zeros([a])
+        # new1 = tf.Variable(variable_features2)
+        # new = new[:,7].assign(new1)
 
-        variable_features2 = tf.zeros([a,6])
-        new1 = tf.Variable(variable_features2)
-        new = new[:,10:16].assign(new1)
+        # variable_features2 = tf.zeros([a,6])
+        # new1 = tf.Variable(variable_features2)
+        # new = new[:,10:16].assign(new1)
 
-        variable_features = tf.convert_to_tensor(new)
+        # variable_features = tf.convert_to_tensor(new)
 
         #cauctions
 
@@ -405,10 +405,7 @@ class GCNPolicy(BaseModel):
         # new1 = tf.Variable(variable_features1)
         # new = new[:,0:4].assign(new1)
 
-
-
         # variable_features3 = tf.zeros([a])
-        # new = tf.Variable(variable_features)
         # new1 = tf.Variable(variable_features3)
         # new = new[:,17].assign(new1)
 
